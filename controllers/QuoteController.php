@@ -168,4 +168,4 @@ class QuoteController {
             echo json_encode(["message" => $e->getMessage()]);
         }
     }
-    
+}    
