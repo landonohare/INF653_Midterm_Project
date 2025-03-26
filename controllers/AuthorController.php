@@ -1,8 +1,8 @@
 <?php
 // controllers/AuthorController.php
 
-require_once '../config/Database.php';
-require_once '../models/Author.php';
+require_once __DIR__ . '../config/Database.php';
+require_once __DIR__ . '../models/Author.php';
 
 class AuthorController {
     private $db;

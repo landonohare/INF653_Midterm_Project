@@ -1,8 +1,8 @@
 <?php
 // controllers/CategoryController.php
 
-require_once '../config/Database.php';
-require_once '../models/Category.php';
+require_once __DIR__ . '../config/Database.php';
+require_once __DIR__ . '../models/Category.php';
 
 class CategoryController {
     private $db;

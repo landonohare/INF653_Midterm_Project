@@ -1,14 +1,12 @@
-# Use the official PHP image with Apache
 FROM php:8.0-apache
 
-# Copy your project files to the container’s document root
-COPY . /var/www/html/
-
-# Optional: Enable Apache mod_rewrite if you need URL rewriting
+# Enable Apache mod_rewrite if needed
 RUN a2enmod rewrite
 
-# Set working directory
+# Install PostgreSQL PDO extension (if it's not already installed)
+RUN docker-php-ext-install pdo_pgsql
+
+COPY . /var/www/html
 WORKDIR /var/www/html
 
-# Expose port 80 for web traffic
 EXPOSE 80
