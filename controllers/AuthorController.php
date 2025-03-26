@@ -38,25 +38,14 @@ class AuthorController {
         $stmt = $this->authorModel->read($params);
         $num = $stmt->rowCount();
         if ($num > 0) {
-            // If an id parameter is provided, return a single object.
+            // If an id parameter is provided, return a single object
             if (isset($params['id'])) {
                 $row = $stmt->fetch(PDO::FETCH_ASSOC);
-                extract($row);
-                $author_item = [
-                    "id" => $id,
-                    "author" => $author
-                ];
-                echo json_encode($author_item);
+                echo json_encode($row);
             } else {
-                // Otherwise, return an array of objects.
                 $authors_arr = [];
                 while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
-                    extract($row);
-                    $author_item = [
-                        "id" => $id,
-                        "author" => $author
-                    ];
-                    $authors_arr[] = $author_item;
+                    $authors_arr[] = $row;
                 }
                 echo json_encode($authors_arr);
             }
@@ -64,7 +53,6 @@ class AuthorController {
             echo json_encode(["message" => "author_id Not Found"]);
         }
     }
-    
 
     private function handlePost() {
         $data = json_decode(file_get_contents("php://input"));
@@ -73,13 +61,17 @@ class AuthorController {
             return;
         }
         $this->authorModel->author = $data->author;
-        if ($this->authorModel->create()) {
-            echo json_encode([
-                "id" => $this->authorModel->id,
-                "author" => $data->author
-            ]);
-        } else {
-            echo json_encode(["message" => "Author Not Created"]);
+        try {
+            if ($this->authorModel->create()) {
+                echo json_encode([
+                    "id" => $this->authorModel->id,
+                    "author" => $data->author
+                ]);
+            } else {
+                echo json_encode(["message" => "Author Not Created"]);
+            }
+        } catch (PDOException $e) {
+            echo json_encode(["message" => $e->getMessage()]);
         }
     }
 
@@ -91,13 +83,17 @@ class AuthorController {
         }
         $this->authorModel->id = $data->id;
         $this->authorModel->author = $data->author;
-        if ($this->authorModel->update()) {
-            echo json_encode([
-                "id" => $data->id,
-                "author" => $data->author
-            ]);
-        } else {
-            echo json_encode(["message" => "author_id Not Found"]);
+        try {
+            if ($this->authorModel->update()) {
+                echo json_encode([
+                    "id" => $data->id,
+                    "author" => $data->author
+                ]);
+            } else {
+                echo json_encode(["message" => "author_id Not Found"]);
+            }
+        } catch (PDOException $e) {
+            echo json_encode(["message" => $e->getMessage()]);
         }
     }
 
@@ -107,10 +103,14 @@ class AuthorController {
             return;
         }
         $this->authorModel->id = $_GET['id'];
-        if ($this->authorModel->delete()) {
-            echo json_encode(["id" => $_GET['id']]);
-        } else {
-            echo json_encode(["message" => "author_id Not Found"]);
+        try {
+            if ($this->authorModel->delete()) {
+                echo json_encode(["id" => $_GET['id']]);
+            } else {
+                echo json_encode(["message" => "author_id Not Found"]);
+            }
+        } catch (PDOException $e) {
+            echo json_encode(["message" => $e->getMessage()]);
         }
     }
 }

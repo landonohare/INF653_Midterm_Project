@@ -76,36 +76,46 @@ class QuoteController {
     }
     
     private function handlePost() {
-        // For POST, read JSON input
         $data = json_decode(file_get_contents("php://input"));
-        // Check for required fields
-        if(!isset($data->quote) || !isset($data->author_id) || !isset($data->category_id)) {
+        if (!isset($data->quote) || !isset($data->author_id) || !isset($data->category_id)) {
             echo json_encode(["message" => "Missing Required Parameters"]);
             return;
         }
         $this->quoteModel->quote = $data->quote;
         $this->quoteModel->author_id = $data->author_id;
         $this->quoteModel->category_id = $data->category_id;
-
-        // (Additional checks to ensure author_id and category_id exist can be added here)
-
-        if($this->quoteModel->create()){
-            // Return created quote (you might run a read query to join the author and category names)
-            echo json_encode([
-                "id" => $this->quoteModel->id,
-                "quote" => $data->quote,
-                "author_id" => $data->author_id,
-                "category_id" => $data->category_id
-            ]);
-        } else {
-            echo json_encode(["message" => "Quote Not Created"]);
+        
+        try {
+            if ($this->quoteModel->create()) {
+                echo json_encode([
+                    "id" => $this->quoteModel->id,
+                    "quote" => $data->quote,
+                    "author_id" => $data->author_id,
+                    "category_id" => $data->category_id
+                ]);
+            } else {
+                echo json_encode(["message" => "Quote Not Created"]);
+            }
+        } catch (PDOException $e) {
+            $errorMsg = $e->getMessage();
+            // Check if it's a foreign key violation and return a custom message
+            if (stripos($errorMsg, 'foreign key constraint') !== false) {
+                if (stripos($errorMsg, 'author_id') !== false) {
+                    echo json_encode(["message" => "author_id Not Found"]);
+                } elseif (stripos($errorMsg, 'category_id') !== false) {
+                    echo json_encode(["message" => "category_id Not Found"]);
+                } else {
+                    echo json_encode(["message" => $errorMsg]);
+                }
+            } else {
+                echo json_encode(["message" => $errorMsg]);
+            }
         }
     }
-
+    
     private function handlePut() {
-        // For PUT, get JSON input
         $data = json_decode(file_get_contents("php://input"));
-        if(!isset($data->id) || !isset($data->quote) || !isset($data->author_id) || !isset($data->category_id)) {
+        if (!isset($data->id) || !isset($data->quote) || !isset($data->author_id) || !isset($data->category_id)) {
             echo json_encode(["message" => "Missing Required Parameters"]);
             return;
         }
@@ -113,33 +123,49 @@ class QuoteController {
         $this->quoteModel->quote = $data->quote;
         $this->quoteModel->author_id = $data->author_id;
         $this->quoteModel->category_id = $data->category_id;
-
-        // (Again, add checks for author_id and category_id existence if needed)
-
-        if($this->quoteModel->update()){
-            echo json_encode([
-                "id" => $data->id,
-                "quote" => $data->quote,
-                "author_id" => $data->author_id,
-                "category_id" => $data->category_id
-            ]);
-        } else {
-            echo json_encode(["message" => "No Quotes Found"]);
+        
+        try {
+            if ($this->quoteModel->update()) {
+                echo json_encode([
+                    "id" => $data->id,
+                    "quote" => $data->quote,
+                    "author_id" => $data->author_id,
+                    "category_id" => $data->category_id
+                ]);
+            } else {
+                echo json_encode(["message" => "No Quotes Found"]);
+            }
+        } catch (PDOException $e) {
+            $errorMsg = $e->getMessage();
+            if (stripos($errorMsg, 'foreign key constraint') !== false) {
+                if (stripos($errorMsg, 'author_id') !== false) {
+                    echo json_encode(["message" => "author_id Not Found"]);
+                } elseif (stripos($errorMsg, 'category_id') !== false) {
+                    echo json_encode(["message" => "category_id Not Found"]);
+                } else {
+                    echo json_encode(["message" => $errorMsg]);
+                }
+            } else {
+                echo json_encode(["message" => $errorMsg]);
+            }
         }
     }
+    
 
     private function handleDelete() {
-        // For DELETE, you may get parameters via GET or JSON input depending on your client.
-        // Here we assume an id is passed via the query string.
-        if(!isset($_GET['id'])) {
+        if (!isset($_GET['id'])) {
             echo json_encode(["message" => "Missing Required Parameters"]);
             return;
         }
         $this->quoteModel->id = $_GET['id'];
-        if($this->quoteModel->delete()){
-            echo json_encode(["id" => $_GET['id']]);
-        } else {
-            echo json_encode(["message" => "No Quotes Found"]);
+        try {
+            if ($this->quoteModel->delete()) {
+                echo json_encode(["id" => $_GET['id']]);
+            } else {
+                echo json_encode(["message" => "No Quotes Found"]);
+            }
+        } catch (PDOException $e) {
+            echo json_encode(["message" => $e->getMessage()]);
         }
     }
-}
+    

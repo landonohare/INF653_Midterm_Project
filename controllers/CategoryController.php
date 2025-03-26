@@ -38,25 +38,14 @@ class CategoryController {
         $stmt = $this->categoryModel->read($params);
         $num = $stmt->rowCount();
         if ($num > 0) {
-            // If an id parameter is provided, return a single object.
+            // If an id parameter is provided, return a single object
             if (isset($params['id'])) {
                 $row = $stmt->fetch(PDO::FETCH_ASSOC);
-                extract($row);
-                $category_item = [
-                    "id" => $id,
-                    "category" => $category
-                ];
-                echo json_encode($category_item);
+                echo json_encode($row);
             } else {
-                // Otherwise, return an array of objects.
                 $categories_arr = [];
                 while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
-                    extract($row);
-                    $category_item = [
-                        "id" => $id,
-                        "category" => $category
-                    ];
-                    $categories_arr[] = $category_item;
+                    $categories_arr[] = $row;
                 }
                 echo json_encode($categories_arr);
             }
@@ -64,7 +53,7 @@ class CategoryController {
             echo json_encode(["message" => "category_id Not Found"]);
         }
     }
-    
+
     private function handlePost() {
         $data = json_decode(file_get_contents("php://input"));
         if (!isset($data->category)) {
@@ -72,13 +61,17 @@ class CategoryController {
             return;
         }
         $this->categoryModel->category = $data->category;
-        if ($this->categoryModel->create()) {
-            echo json_encode([
-                "id" => $this->categoryModel->id,
-                "category" => $data->category
-            ]);
-        } else {
-            echo json_encode(["message" => "Category Not Created"]);
+        try {
+            if ($this->categoryModel->create()) {
+                echo json_encode([
+                    "id" => $this->categoryModel->id,
+                    "category" => $data->category
+                ]);
+            } else {
+                echo json_encode(["message" => "Category Not Created"]);
+            }
+        } catch (PDOException $e) {
+            echo json_encode(["message" => $e->getMessage()]);
         }
     }
 
@@ -90,13 +83,17 @@ class CategoryController {
         }
         $this->categoryModel->id = $data->id;
         $this->categoryModel->category = $data->category;
-        if ($this->categoryModel->update()) {
-            echo json_encode([
-                "id" => $data->id,
-                "category" => $data->category
-            ]);
-        } else {
-            echo json_encode(["message" => "category_id Not Found"]);
+        try {
+            if ($this->categoryModel->update()) {
+                echo json_encode([
+                    "id" => $data->id,
+                    "category" => $data->category
+                ]);
+            } else {
+                echo json_encode(["message" => "category_id Not Found"]);
+            }
+        } catch (PDOException $e) {
+            echo json_encode(["message" => $e->getMessage()]);
         }
     }
 
@@ -106,10 +103,14 @@ class CategoryController {
             return;
         }
         $this->categoryModel->id = $_GET['id'];
-        if ($this->categoryModel->delete()) {
-            echo json_encode(["id" => $_GET['id']]);
-        } else {
-            echo json_encode(["message" => "category_id Not Found"]);
+        try {
+            if ($this->categoryModel->delete()) {
+                echo json_encode(["id" => $_GET['id']]);
+            } else {
+                echo json_encode(["message" => "category_id Not Found"]);
+            }
+        } catch (PDOException $e) {
+            echo json_encode(["message" => $e->getMessage()]);
         }
     }
 }
