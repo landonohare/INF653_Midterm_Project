@@ -38,14 +38,15 @@ class QuoteController {
 
     private function handleGet($params) {
         // Check for "random" parameter if provided
-        if(isset($params['random']) && $params['random'] == 'true'){
+        if (isset($params['random']) && $params['random'] == 'true'){
             $params['random'] = true;
         }
         $stmt = $this->quoteModel->read($params);
         $num = $stmt->rowCount();
-        if($num > 0) {
-            $quotes_arr = [];
-            while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+        if ($num > 0) {
+            // If an id parameter is provided, return a single object.
+            if (isset($params['id'])) {
+                $row = $stmt->fetch(PDO::FETCH_ASSOC);
                 extract($row);
                 $quote_item = [
                     "id" => $id,
@@ -53,14 +54,27 @@ class QuoteController {
                     "author" => $author,
                     "category" => $category
                 ];
-                $quotes_arr[] = $quote_item;
+                echo json_encode($quote_item);
+            } else {
+                // Otherwise, return an array of objects.
+                $quotes_arr = [];
+                while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+                    extract($row);
+                    $quote_item = [
+                        "id" => $id,
+                        "quote" => $quote,
+                        "author" => $author,
+                        "category" => $category
+                    ];
+                    $quotes_arr[] = $quote_item;
+                }
+                echo json_encode($quotes_arr);
             }
-            echo json_encode($quotes_arr);
         } else {
             echo json_encode(["message" => "No Quotes Found"]);
         }
     }
-
+    
     private function handlePost() {
         // For POST, read JSON input
         $data = json_decode(file_get_contents("php://input"));

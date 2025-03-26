@@ -38,21 +38,33 @@ class CategoryController {
         $stmt = $this->categoryModel->read($params);
         $num = $stmt->rowCount();
         if ($num > 0) {
-            $categories_arr = [];
-            while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+            // If an id parameter is provided, return a single object.
+            if (isset($params['id'])) {
+                $row = $stmt->fetch(PDO::FETCH_ASSOC);
                 extract($row);
                 $category_item = [
                     "id" => $id,
                     "category" => $category
                 ];
-                $categories_arr[] = $category_item;
+                echo json_encode($category_item);
+            } else {
+                // Otherwise, return an array of objects.
+                $categories_arr = [];
+                while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+                    extract($row);
+                    $category_item = [
+                        "id" => $id,
+                        "category" => $category
+                    ];
+                    $categories_arr[] = $category_item;
+                }
+                echo json_encode($categories_arr);
             }
-            echo json_encode($categories_arr);
         } else {
             echo json_encode(["message" => "category_id Not Found"]);
         }
     }
-
+    
     private function handlePost() {
         $data = json_decode(file_get_contents("php://input"));
         if (!isset($data->category)) {

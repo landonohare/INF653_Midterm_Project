@@ -38,20 +38,33 @@ class AuthorController {
         $stmt = $this->authorModel->read($params);
         $num = $stmt->rowCount();
         if ($num > 0) {
-            $authors_arr = [];
-            while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+            // If an id parameter is provided, return a single object.
+            if (isset($params['id'])) {
+                $row = $stmt->fetch(PDO::FETCH_ASSOC);
                 extract($row);
                 $author_item = [
                     "id" => $id,
                     "author" => $author
                 ];
-                $authors_arr[] = $author_item;
+                echo json_encode($author_item);
+            } else {
+                // Otherwise, return an array of objects.
+                $authors_arr = [];
+                while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+                    extract($row);
+                    $author_item = [
+                        "id" => $id,
+                        "author" => $author
+                    ];
+                    $authors_arr[] = $author_item;
+                }
+                echo json_encode($authors_arr);
             }
-            echo json_encode($authors_arr);
         } else {
             echo json_encode(["message" => "author_id Not Found"]);
         }
     }
+    
 
     private function handlePost() {
         $data = json_decode(file_get_contents("php://input"));
