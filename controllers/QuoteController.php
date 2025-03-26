@@ -1,10 +1,10 @@
 <?php
 // controllers/QuoteController.php
 
-require_once __DIR__ . '../config/Database.php';
-require_once __DIR__ . '../models/Quote.php';
-require_once __DIR__ . '../models/Author.php';
-require_once __DIR__ . '../models/Category.php';
+require_once __DIR__ . '/../config/Database.php';
+require_once __DIR__ . '/../models/Quote.php';
+require_once __DIR__ . '/../models/Author.php';
+require_once __DIR__ . '/../models/Category.php';
 
 class QuoteController {
     private $db;
